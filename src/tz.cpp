@@ -283,21 +283,23 @@ static
 std::string&
 access_install()
 {
-    static std::string install
-#ifndef INSTALL
+    // Return the installation path of the Time Zone Database Data Only Distribution
+    // as distributed on conda-forge (i.e. the `$CONDA_PREFIX/share/zoneinfo` directory).
+    // See: https:/github.com/conda-forge/timezone-data-feedstock
+    static std::string install;
 
-    = get_download_folder() + folder_delimiter + "tzdata";
-
-#else   // !INSTALL
-
-#  define STRINGIZEIMP(x) #x
-#  define STRINGIZE(x) STRINGIZEIMP(x)
-
-    = STRINGIZE(INSTALL) + std::string(1, folder_delimiter) + "tzdata";
-
-    #undef STRINGIZEIMP
-    #undef STRINGIZE
-#endif  // !INSTALL
+    if (install.empty())
+    {
+        const char* conda_prefix = std::getenv("CONDA_PREFIX");
+        if (conda_prefix != nullptr)
+        {
+            install = conda_prefix;
+            install += "/share/zoneinfo";
+        }
+        else {
+            throw std::runtime_error("CONDA_PREFIX has to be set to be able to locate the tzdb");
+        }
+    }
 
     return install;
 }
